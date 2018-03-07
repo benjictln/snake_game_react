@@ -100,7 +100,7 @@ class Game extends React.Component {
       heightPerCase : 100
     };
   }
-
+  /*
   componentDidMount() {
     this.updateWindowDimensions();
     window.addEventListener('resize', this.updateWindowDimensions.bind(this));
@@ -118,11 +118,11 @@ class Game extends React.Component {
       heightPerCase : window.innerHeight / this.props.caseHeight
     });
   }
-
+*/
   render() {
     return (<div className='game' style={{width:'100%'}}>
               <div className='game-board'>
-                <Board widthPerCase={this.state.widthPerCase} heightPerCase={this.state.heightPerCase} nbCaseRow={this.props.caseHeight} nbCaseColumn={this.props.caseWidth}/>
+                <Board sizePerCase={800/this.props.caseWidth} nbCaseRow={this.props.caseHeight} nbCaseColumn={this.props.caseWidth}/>
               </div>
             </div>);
   }
