@@ -4,131 +4,178 @@ import './index.css';
 
 
 
+function Result() {
+    return(<div>it's won.</div>)
+}
+
 
 class Case extends React.Component {
 
-  componentDidMount() {
-    this.updateCanvas();
-  }
-  updateCanvas(props) {
-    const ctx = this.refs.canvas.getContext('2d');
-    ctx.fillStyle = '#aaaaaa';
-    ctx.clearRect(0,0, 300, 300);
-    if (props) {
-      ctx.fillRect(0,0,props.width,props.height);
-      console.log(props.width);
+    componentDidMount() {
+        this.draw(this.props);
     }
-    else ctx.fillRect(0,0,this.props.width,this.props.height);
-    console.log(this.props.width);
-  }
 
-  componentWillReceiveProps(nextProps) {
-    this.updateCanvas(nextProps);
-  }
+    updateCanvas() {
+        const ctx = this.refs.canvas.getContext('2d');
+        ctx.fillStyle = '#aaaaaa';
+        ctx.clearRect(0,0, 20, 20);
+        ctx.fillRect(0,0,20,20);
+    }
 
-  render() {
+    drawNothing() {
+        const ctx = this.refs.canvas.getContext('2d');
+        ctx.fillStyle = '#eeeeee';
+        ctx.beginPath();
+        ctx.clearRect(0,0, 20, 20);
+        ctx.arc(10,10,10,0,2*Math.PI);
+        ctx.fill();
+    }
+
+    drawApple() {
+        const ctx = this.refs.canvas.getContext('2d');
+        ctx.fillStyle = '#008000';
+        ctx.beginPath();
+        ctx.clearRect(0,0, 20, 20);
+        ctx.arc(10,10,10,0,2*Math.PI);
+        ctx.fill();
+    }
+
+    drawSnake() {
+        const ctx = this.refs.canvas.getContext('2d');
+        ctx.fillStyle = '#ff0000';
+        ctx.beginPath();
+        ctx.clearRect(0,0, 20, 20);
+        ctx.arc(10,10,10,0,1.5*Math.PI);
+        ctx.fill();
+    }
+
+    drawObstacle() {
+        const ctx = this.refs.canvas.getContext('2d');
+        ctx.fillStyle = '#222222';
+        ctx.beginPath();
+        ctx.clearRect(0,0, 20, 20);
+        ctx.arc(10,10,10,0,2*Math.PI);
+        ctx.fill();
+    }
+
+    draw(nextProps){
+        if (nextProps.type === 0) this.drawNothing();
+        if (nextProps.type === 1) this.drawSnake();
+        if (nextProps.type === 2) this.drawApple();
+        if (nextProps.type === 3) this.drawObstacle();
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.draw(nextProps);
+    }
+
+
+    render() {
     //return <div className='case'>{this.props.row + ' ' + this.props.column}</div>;
-    return <canvas ref="canvas" width={this.props.width} height={this.props.height} />;
-  }
+        return <canvas ref="canvas" width={20} height={20} />;
+    }
 }
 
 class Board extends React.Component {
-  constructor(props) {
-    super(props);
-    this.board = [];
-  }
-
-  componentDidMount(){
-    for (let i = 0; i < this.props.nbCaseColumn; i++) {
-      var row = [];
-      var boxStyle = {
-        width: Math.floor(100/this.props.nbCaseColumn) + '%',
-        height: Math.floor(100/this.props.nbCaseRow) + '%',
-        display:'inline-block'
-      };
-
-      var height = this.props.heightPerCase;
-      var width = this.props.widthPerCase;
-      console.log(width + ' ' + height);
-      for (let j = 0; j < this.props.nbCaseRow; j++) {
-        row.push(
-          <div style={boxStyle}>
-            <Case row = {i} column = {j} height= {this.height} width={this.width}/>
-          </div>)
-      }
-      this.board.push(<div className='row'>
-                        {row}
-                      </div>);
+    constructor(props) {
+        super(props);
+        let board = [];
+        for (let i = 0; i < this.props.nbCaseRow; i++) {
+            let row = [];
+            for (let j = 0; j < this.props.nbCaseColumn; j++) {
+                row.push(0);
+            }
+            board.push(row);
+        }
+        board[0][0] = 1;
+        this.state = {
+            board : board,   // 0 is nothing, 1 is the snake, 2 an apple, 3 an obstacle
+            snake : [[0,0]],
+            apple : [],
+            obstacle : [],
+        };
     }
-  }
-  componentWillReceiveProps(nextProps) {
-    this.board = [];
-    console.log('Board updated');
-    console.log(this.props.widthPerCase + ' ' + this.props.heightPerCase);
-    for (let i = 0; i < this.props.nbCaseColumn; i++) {
-      let row = [];
-      var boxStyle = {
-        width:100/this.props.nbCaseColumn + '%',
-        height:100/this.props.nbCaseRow + '%',
-        display:'inline-block'
-      };
-      for (let j = 0; j < this.props.nbCaseRow; j++) {
-        row.push(
-          <div style={boxStyle}>
-            <Case row = {i} column = {j} height= {this.props.heightPerCase} width={this.props.widthPerCase}/>
-          </div>)
-      }
-      this.board.push(<div className='row'>
-                        {row}
-                      </div>);
-    }
-  }
 
-  render() {
-    return(this.board);
-  }
+    componentDidMount(){
+        var board = [];
+        for (let i = 0; i < this.props.nbCaseColumn; i++) {
+            var row = [];
+            var boxStyle = {
+                width: 21,
+                height: 21,
+                display:'inline-block'
+            };
+            for (let j = 0; j < this.props.nbCaseRow; j++) {
+                row.push(
+                    <div style={boxStyle}>
+                        <Case type={(this.state.board[i][j])} />
+                    </div>)
+            }
+            board.push(
+                <div className='row'>
+                    {row}
+                </div>);
+        }
+        this.setState({
+            board:board
+        });
+    }
+
+    isItTheSnake(row,col) {
+        let length = this.state.snake.length;
+        for (let i = 0; i < length; i++) {
+            if (this.state.snake[i][0] === row && this.state.snake[i][1] === col) return true;
+        }
+        return false;
+    }
+
+    isItTheAnApple(row,col) {
+        let length = this.state.apple.length;
+        for (let i = 0; i < length; i++) {
+            if (this.state.apple[i][0] === row && this.state.apple[i][1] === col) return true;
+        }
+        return false;
+    }
+
+    isItTheAnObstacle(row,col) {
+        let length = this.state.obstacle.length;
+        for (let i = 0; i < length; i++) {
+            if (this.state.obstacle[i][0] === row && this.state.obstacle[i][1] === col) return true;
+        }
+        return false;
+    }
+
+    render() {
+        return(this.state.board);
+    }
 }
 
 
 class Game extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      width : '100%',
-      height : '100%',
-      widthPerCase : 100,
-      heightPerCase : 100
-    };
-  }
-  /*
-  componentDidMount() {
-    this.updateWindowDimensions();
-    window.addEventListener('resize', this.updateWindowDimensions.bind(this));
-  }
+    constructor(props) {
+        super(props);
+        this.state = {
+            width : '100%',
+            height : '100%',
+            widthPerCase : 100,
+            heightPerCase : 100
+        };
+    }
 
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.updateWindowDimensions.bind(this));
-  }
-
-  updateWindowDimensions() {
-    this.setState({
-      width : window.innerWidth,
-      height : window.innerHeight,
-      widthPerCase : window.innerWidth / this.props.caseWidth,
-      heightPerCase : window.innerHeight / this.props.caseHeight
-    });
-  }
-*/
-  render() {
-    return (<div className='game' style={{width:'100%'}}>
-              <div className='game-board'>
-                <Board sizePerCase={800/this.props.caseWidth} nbCaseRow={this.props.caseHeight} nbCaseColumn={this.props.caseWidth}/>
-              </div>
+    render() {
+        return (
+            <div className='game' style={{width:'100%'}}>
+                <div className='game-result'>
+                    <Result></Result>
+                </div>
+                <div className='game-board'>
+                    <Board sizePerCase={800/this.props.caseWidth} nbCaseRow={this.props.caseHeight} nbCaseColumn={this.props.caseWidth}/>
+                </div>
             </div>);
-  }
+    }
 }
 
 ReactDOM.render(
-  <Game caseWidth='10' caseHeight='10'/>,
-  document.getElementById('root')
+    <Game caseWidth='10' caseHeight='10'/>,
+    document.getElementById('root')
 )
