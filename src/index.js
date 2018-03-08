@@ -69,7 +69,6 @@ class Case extends React.Component {
         this.draw(nextProps);
     }
 
-
     render() {
     //return <div className='case'>{this.props.row + ' ' + this.props.column}</div>;
         return <canvas ref="canvas" width={20} height={20} />;
@@ -77,41 +76,30 @@ class Case extends React.Component {
 }
 
 class Board extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            board : this.props.board
-        };
 
+    renderRow(i) {
+        var row = [];
+        for (let j = 0; j < this.props.nbCaseRow; j++) {
+            row.push(<Case key={i*this.props.nbCaseColumn + j} type={this.props.board[i][j]} /> )
+        }
+        return row;
     }
 
-    componentDidMount(){
+    renderBoard() {
         var board = [];
-        for (let i = 0; i < this.props.nbCaseColumn; i++) {
-            var row = [];
-            var boxStyle = {
-                width: 21,
-                height: 21,
-                display:'inline-block'
-            };
-            for (let j = 0; j < this.props.nbCaseRow; j++) {
-                row.push(
-                    <div style={boxStyle}>
-                        <Case type={(this.state.board[i][j])} />
-                    </div>)
-            }
+        for (var i = 0; i < this.props.nbCaseColumn; i++) {
             board.push(
                 <div className='row'>
-                    {row}
+                    {this.renderRow(i)}
                 </div>);
         }
-        this.setState({
-            board:board
-        });
+        return board;
     }
 
     render() {
-        return(this.state.board);
+        return(
+            this.renderBoard()
+        );
     }
 }
 
@@ -119,14 +107,71 @@ class Board extends React.Component {
 class Game extends React.Component {
     constructor(props) {
         super(props);
+        var board = [];
+        // can't use board : Array(this.props.caseWidth).fill(Array(this.props.caseHeight).fill(0))  BECAUSE board[0][0]=1 change all the column 0
+        for (let i = 0; i < this.props.caseWidth; i++) {
+            var newRow = new Array(this.props.caseHeight);
+            newRow.fill(0);
+            board.push(newRow);
+        }
         this.state = {
             widthPerCase : 100,
             heightPerCase : 100,
-            board : Array(this.props.caseWidth).fill(Array(this.props.caseHeight).fill(0)),   // 0 is nothing, 1 is the snake, 2 an apple, 3 an obstacle
-            snake : [[0,0]],
+            board : board,   // 0 is nothing, 1 is the snake, 2 an apple, 3 an obstacle
+            snake : [],
             apple : [],
             obstacle : [],
         };
+    }
+
+    componentDidMount() {
+        this.startGame(5,3);
+        console.log('startGame');
+    }
+
+    startGame(i, j) {
+        this.setState( (prevState) => {
+            var board = prevState.board;
+            board[i][j] = 1;
+            return {board: board,
+            snake:[[i,j]]};
+        });
+        setInterval(this.updateGame.bind(this),4000);
+    }
+
+    getNextCase(snake,direction) {
+        //direction TODO
+        console.log('snake 0 is' + snake);
+        var nextCase = snake;
+        console.log('next case is' + nextCase[0] + ' ' + nextCase[1]);
+        return([nextCase[0],(nextCase[1])+1]);
+    }
+
+    updateGame() {
+        // TODO: read direction wanted by user
+        // TODO: control when hitting a wall
+        // TODO: automatically add an apple
+        // TODO: automatically add an obstacle
+        this.setState( (prevState) => {
+            console.log('snake is ' + prevState.snake);
+            var nextCase = this.getNextCase(prevState.snake[0],'fakeDirection');
+            //var nextCase = [3,3];
+            if (isThereAnObstacle(nextCase[0], nextCase[1], prevState.obstacle)) console.log('YOU LOSE :(\n\nToo bad ..');
+            if (isThereTheSnake(nextCase[0], nextCase[1], prevState.snake)) console.log('YOU BITE YOURSELF :( \n\nTry smarter');
+            if (isThereAnApple(nextCase[0], nextCase[1], prevState.apple)) console.log('LEVEL UPPPP :) \n\nSmart');
+            var board = prevState.board.slice();
+            board[nextCase[0]][nextCase[1]] = 1;
+            var snake = []; //while only one part, works TODO: update this
+            console.log('next case is ');
+            console.log(nextCase);
+            snake.push(nextCase);
+            return {
+                board:board,
+                snake:snake,
+            }
+        });
+        console.log('updated game');
+        //setInterval(this.updateGame.bind(this),1000);
     }
 
     render() {
@@ -143,11 +188,12 @@ class Game extends React.Component {
 }
 
 ReactDOM.render(
-    <Game caseWidth='10' caseHeight='10'/>,
+    <Game caseWidth={10} caseHeight={10}/>,
     document.getElementById('root')
 )
 
 function isThereTheSnake(row,col, snake) {
+    //return true if the snake is present at the case at column 'col' and row 'row'
     let length = snake.length;
     for (let i = 0; i < length; i++) {
         if (snake[i][0] === row && snake[i][1] === col) return true;
@@ -156,6 +202,7 @@ function isThereTheSnake(row,col, snake) {
 }
 
 function isThereAnApple(row,col,apple) {
+    //return true if an apple is present at the case at column 'col' and row 'row'
     let length = apple.length;
     for (let i = 0; i < length; i++) {
         if (apple[i][0] === row && apple[i][1] === col) return true;
@@ -164,6 +211,7 @@ function isThereAnApple(row,col,apple) {
 }
 
 function isThereAnObstacle(row,col,obstacle) {
+    //return true if an obstacle is present at the case at column 'col' and row 'row'
     let length = obstacle.length;
     for (let i = 0; i < length; i++) {
         if (obstacle[i][0] === row && obstacle[i][1] === col) return true;
