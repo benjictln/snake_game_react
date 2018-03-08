@@ -79,21 +79,10 @@ class Case extends React.Component {
 class Board extends React.Component {
     constructor(props) {
         super(props);
-        let board = [];
-        for (let i = 0; i < this.props.nbCaseRow; i++) {
-            let row = [];
-            for (let j = 0; j < this.props.nbCaseColumn; j++) {
-                row.push(0);
-            }
-            board.push(row);
-        }
-        board[0][0] = 1;
         this.state = {
-            board : board,   // 0 is nothing, 1 is the snake, 2 an apple, 3 an obstacle
-            snake : [[0,0]],
-            apple : [],
-            obstacle : [],
+            board : this.props.board
         };
+
     }
 
     componentDidMount(){
@@ -121,30 +110,6 @@ class Board extends React.Component {
         });
     }
 
-    isItTheSnake(row,col) {
-        let length = this.state.snake.length;
-        for (let i = 0; i < length; i++) {
-            if (this.state.snake[i][0] === row && this.state.snake[i][1] === col) return true;
-        }
-        return false;
-    }
-
-    isItTheAnApple(row,col) {
-        let length = this.state.apple.length;
-        for (let i = 0; i < length; i++) {
-            if (this.state.apple[i][0] === row && this.state.apple[i][1] === col) return true;
-        }
-        return false;
-    }
-
-    isItTheAnObstacle(row,col) {
-        let length = this.state.obstacle.length;
-        for (let i = 0; i < length; i++) {
-            if (this.state.obstacle[i][0] === row && this.state.obstacle[i][1] === col) return true;
-        }
-        return false;
-    }
-
     render() {
         return(this.state.board);
     }
@@ -155,10 +120,12 @@ class Game extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            width : '100%',
-            height : '100%',
             widthPerCase : 100,
-            heightPerCase : 100
+            heightPerCase : 100,
+            board : Array(this.props.caseWidth).fill(Array(this.props.caseHeight).fill(0)),   // 0 is nothing, 1 is the snake, 2 an apple, 3 an obstacle
+            snake : [[0,0]],
+            apple : [],
+            obstacle : [],
         };
     }
 
@@ -169,7 +136,7 @@ class Game extends React.Component {
                     <Result></Result>
                 </div>
                 <div className='game-board'>
-                    <Board sizePerCase={800/this.props.caseWidth} nbCaseRow={this.props.caseHeight} nbCaseColumn={this.props.caseWidth}/>
+                    <Board sizePerCase={800/this.props.caseWidth} nbCaseRow={this.props.caseHeight} nbCaseColumn={this.props.caseWidth} board={this.state.board}/>
                 </div>
             </div>);
     }
@@ -179,3 +146,27 @@ ReactDOM.render(
     <Game caseWidth='10' caseHeight='10'/>,
     document.getElementById('root')
 )
+
+function isThereTheSnake(row,col, snake) {
+    let length = snake.length;
+    for (let i = 0; i < length; i++) {
+        if (snake[i][0] === row && snake[i][1] === col) return true;
+    }
+    return false;
+}
+
+function isThereAnApple(row,col,apple) {
+    let length = apple.length;
+    for (let i = 0; i < length; i++) {
+        if (apple[i][0] === row && apple[i][1] === col) return true;
+    }
+    return false;
+}
+
+function isThereAnObstacle(row,col,obstacle) {
+    let length = obstacle.length;
+    for (let i = 0; i < length; i++) {
+        if (obstacle[i][0] === row && obstacle[i][1] === col) return true;
+    }
+    return false;
+}
