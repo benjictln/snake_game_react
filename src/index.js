@@ -121,6 +121,7 @@ class Game extends React.Component {
             snake : [],
             apple : [],
             obstacle : [],
+            direction : 1, // 0 up 1 rigth 2 down 3 left
         };
     }
 
@@ -136,16 +137,28 @@ class Game extends React.Component {
             return {board: board,
             snake:[[i,j]]};
         });
-        setInterval(this.updateGame.bind(this),4000);
+        setInterval(this.updateGame.bind(this),1000);
     }
 
-    getNextCase(snake,direction) {
-        //direction TODO
-        console.log('snake 0 is' + snake);
-        var nextCase = snake;
-        console.log('next case is' + nextCase[0] + ' ' + nextCase[1]);
-        return([nextCase[0],(nextCase[1])+1]);
+    getNextCase(snakeHead,direction) {
+        switch (direction) {
+            case 3:
+                return ([snakeHead[0]-1,snakeHead[1]]);
+                break;
+            case 0:
+                return ([snakeHead[0],snakeHead[1]-1]);
+                break;
+            case 2:
+                return ([snakeHead[0],snakeHead[1]+1]);
+                break;
+            default:
+                return ([snakeHead[0]+1,snakeHead[1]]);
+
+
+        }
     }
+
+
 
     updateGame() {
         // TODO: read direction wanted by user
@@ -154,12 +167,16 @@ class Game extends React.Component {
         // TODO: automatically add an obstacle
         this.setState( (prevState) => {
             console.log('snake is ' + prevState.snake);
-            var nextCase = this.getNextCase(prevState.snake[0],'fakeDirection');
+            var nextCase = this.getNextCase(prevState.snake[0],prevState.direction);
             //var nextCase = [3,3];
             // we check what there is at the next case.
             if (isThereAnObstacle(nextCase[0], nextCase[1], prevState.obstacle)) console.log('YOU LOSE :(\n\nToo bad ..');
             if (isThereTheSnake(nextCase[0], nextCase[1], prevState.snake)) console.log('YOU BITE YOURSELF :( \n\nTry smarter');
             if (isThereAnApple(nextCase[0], nextCase[1], prevState.apple)) console.log('LEVEL UPPPP :) \n\nSmart');
+            if (nextCase[0] < 0 || nextCase[0] >= this.props.caseHeight || nextCase[1] < 0 || nextCase[1] >=this.props.caseWidth) {
+                console.log('ERROR ABORD');
+                nextCase = [0,0];
+            }
             var board = prevState.board.slice();
             board[nextCase[0]][nextCase[1]] = 1;
             // we construct the 'new' snake
@@ -179,13 +196,16 @@ class Game extends React.Component {
             }
         });
         console.log('updated game');
-        //setInterval(this.updateGame.bind(this),1000);
+    }
+
+    componentWillMount() {
     }
 
     render() {
         return (
             <div className='game' style={{width:'100%'}}>
                 <div className='game-result'>
+                    <p>The current input is: {this.state.direction}</p>
                     <Result></Result>
                 </div>
                 <div className='game-board'>
@@ -196,7 +216,7 @@ class Game extends React.Component {
 }
 
 ReactDOM.render(
-    <Game caseWidth={10} caseHeight={10}/>,
+    <Game caseWidth={10} caseHeight={10} onKeyDown={(e) => handleKeyPress(e) }/>,
     document.getElementById('root')
 )
 
@@ -225,4 +245,34 @@ function isThereAnObstacle(row,col,obstacle) {
         if (obstacle[i][0] === row && obstacle[i][1] === col) return true;
     }
     return false;
+}
+
+function handleKeyPress (event) {
+
+
+    switch (event.key) {
+      case "ArrowDown":
+        this.state = { direction : 2};
+        break;
+      case "ArrowUp":
+        this.state = { direction : 0};
+        break;
+      case "ArrowLeft":
+        this.state = { direction : 3};
+        break;
+      case "ArrowRight":
+        this.state = { direction : 1};
+        break;
+      case "Enter":
+        // Do something for "enter" or "return" key press.
+        break;
+      case "Escape":
+        // Do something for "esc" key press.
+        break;
+      default:
+        return; // Quit when this doesn't handle the key event.
+    }
+
+    // Consume the event for suppressing "double action".
+    event.preventDefault();
 }
