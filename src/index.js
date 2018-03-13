@@ -89,7 +89,7 @@ class Board extends React.Component {
         var board = [];
         for (var i = 0; i < this.props.nbCaseColumn; i++) {
             board.push(
-                <div className='row'>
+                <div key={i} className='row'>
                     {this.renderRow(i)}
                 </div>);
         }
@@ -156,12 +156,20 @@ class Game extends React.Component {
             console.log('snake is ' + prevState.snake);
             var nextCase = this.getNextCase(prevState.snake[0],'fakeDirection');
             //var nextCase = [3,3];
+            // we check what there is at the next case.
             if (isThereAnObstacle(nextCase[0], nextCase[1], prevState.obstacle)) console.log('YOU LOSE :(\n\nToo bad ..');
             if (isThereTheSnake(nextCase[0], nextCase[1], prevState.snake)) console.log('YOU BITE YOURSELF :( \n\nTry smarter');
             if (isThereAnApple(nextCase[0], nextCase[1], prevState.apple)) console.log('LEVEL UPPPP :) \n\nSmart');
             var board = prevState.board.slice();
             board[nextCase[0]][nextCase[1]] = 1;
-            var snake = []; //while only one part, works TODO: update this
+            // we construct the 'new' snake
+            let snake = prevState.snake.slice();
+            let lengthSnake = snake.length;
+            let lastBlockSnake = snake.pop();
+            snake.unshift([nextCase[0],nextCase[1]]);
+            // we update the board
+            board[lastBlockSnake[0]][lastBlockSnake[1]] = 0;
+            board[nextCase[0]][nextCase[1]] = 1;
             console.log('next case is ');
             console.log(nextCase);
             snake.push(nextCase);
