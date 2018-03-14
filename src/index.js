@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
+import keydown, { ALL_KEYS } from 'react-keydown'
 
 
 
@@ -103,7 +104,6 @@ class Board extends React.Component {
     }
 }
 
-
 class Game extends React.Component {
     constructor(props) {
         super(props);
@@ -122,12 +122,21 @@ class Game extends React.Component {
             apple : [],
             obstacle : [],
             direction : 1, // 0 up 1 rigth 2 down 3 left
+            key:null,
         };
     }
 
     componentDidMount() {
         this.startGame(5,3);
         console.log('startGame');
+        window.addEventListener('keydown', this.newDirection.bind(this), false);
+
+    }
+
+    newDirection = (event) => {
+        if (event.keyCode < 41 && event.keyCode > 36) {
+            this.setState({direction:event.keyCode-37});
+        }
     }
 
     startGame(i, j) {
@@ -143,7 +152,7 @@ class Game extends React.Component {
     getNextCase(snakeHead,direction) {
         switch (direction) {
             case 3:
-                return ([snakeHead[0]-1,snakeHead[1]]);
+                return ([snakeHead[0]+1,snakeHead[1]]);
                 break;
             case 0:
                 return ([snakeHead[0],snakeHead[1]-1]);
@@ -152,12 +161,11 @@ class Game extends React.Component {
                 return ([snakeHead[0],snakeHead[1]+1]);
                 break;
             default:
-                return ([snakeHead[0]+1,snakeHead[1]]);
+                return ([snakeHead[0]-1,snakeHead[1]]);
 
 
         }
     }
-
 
 
     updateGame() {
@@ -198,14 +206,12 @@ class Game extends React.Component {
         console.log('updated game');
     }
 
-    componentWillMount() {
-    }
 
     render() {
         return (
             <div className='game' style={{width:'100%'}}>
-                <div className='game-result'>
-                    <p>The current input is: {this.state.direction}</p>
+                <div className='game-result' >
+                    <p>The current input is: {this.state.direction} and {this.state.key}</p>
                     <Result></Result>
                 </div>
                 <div className='game-board'>
@@ -216,7 +222,7 @@ class Game extends React.Component {
 }
 
 ReactDOM.render(
-    <Game caseWidth={10} caseHeight={10} onKeyDown={(e) => handleKeyPress(e) }/>,
+    <Game caseWidth={10} caseHeight={10} />,
     document.getElementById('root')
 )
 
@@ -252,16 +258,16 @@ function handleKeyPress (event) {
 
     switch (event.key) {
       case "ArrowDown":
-        this.state = { direction : 2};
+        this.setState ({direction : 2});
         break;
       case "ArrowUp":
-        this.state = { direction : 0};
+        this.setState ({ direction : 0});
         break;
       case "ArrowLeft":
-        this.state = { direction : 3};
+        this.setState({ direction : 3});
         break;
       case "ArrowRight":
-        this.state = { direction : 1};
+        this.setState({ direction : 1});
         break;
       case "Enter":
         // Do something for "enter" or "return" key press.
@@ -270,6 +276,7 @@ function handleKeyPress (event) {
         // Do something for "esc" key press.
         break;
       default:
+        console.log('NONNNNNNNNNNNNNNNNNNNNkey Down');
         return; // Quit when this doesn't handle the key event.
     }
 
