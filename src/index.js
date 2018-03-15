@@ -214,10 +214,10 @@ class Game extends React.Component {
                 nextCase = [0,0];
                 return {gameInterval:null};
             }
-            var board = prevState.board.slice();``
+            var board = prevState.board.slice();
             board[nextCase[0]][nextCase[1]] = 1;
             // we construct the 'new' snake
-            let snake = prevState.snake.slice();
+            var snake = prevState.snake.slice();
             let lengthSnake = snake.length;
             let lastBlockSnake = snake.pop();
             snake.unshift([nextCase[0],nextCase[1]]);
@@ -226,7 +226,6 @@ class Game extends React.Component {
             board[nextCase[0]][nextCase[1]] = 1;
             if (DEBBUG) console.log('next case is ');
             if (DEBBUG) console.log(nextCase);
-            snake.push(nextCase);
 
             // 2: WE HANDLE THE APPLE
             if (!prevState.apple.length) {
@@ -248,6 +247,7 @@ class Game extends React.Component {
             <div className='game' style={{width:'100%'}}>
                 <div className='game-result' >
                     <p>The current input is: {this.state.direction} and {this.state.key}</p>
+                    <button onClick={this.pauseGame.bind(this)}>PAUSE GAME</button>
                     <Result></Result>
                 </div>
                 <div className='game-board'>
