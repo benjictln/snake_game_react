@@ -4,6 +4,7 @@ import './index.css';
 
 var DEBBUG = 0;
 var SIZE_CIRCLE = window.innerWidth/20;
+var TIME_LEVEL = 300;
 
 function Result() {
     return(<div>it's won.</div>)
@@ -158,7 +159,9 @@ class Game extends React.Component {
     }
 
     resumeGame() {
-        this.setState({gameInterval:setInterval(this.updateGame.bind(this),1000)})
+        this.setState((prevState) => {
+            if (!prevState.gameInterval) return {gameInterval:setInterval(this.updateGame.bind(this),TIME_LEVEL)};
+        });
     }
 
     getNextCase(snakeHead,direction) {
@@ -183,8 +186,8 @@ class Game extends React.Component {
         var x = Math.floor(board.length*Math.random());
         var y = Math.floor(board[0].length*Math.random());
         while (board[x][y] != 0) {
-            var x = Math.floor(board.length*Math.random);
-            var y = Math.floor(board[0].length*Math.random);
+            x = Math.floor(board.length*Math.random);
+            y = Math.floor(board[0].length*Math.random);
         }
         return ([x,y]);
     }
@@ -194,6 +197,8 @@ class Game extends React.Component {
         // TODO: automatically add an obstacle
         this.setState( (prevState) => {
             // 1: WE HANDLE WHERE THE SNAKE IS GOING NEXT
+            var board = prevState.board.slice();
+            var newState = {};
             var nextCase = this.getNextCase(prevState.snake[0],prevState.direction);
             // we check what there is at the next case.
             if (isThereAnObstacle(nextCase[0], nextCase[1], prevState.obstacle)) {
@@ -204,9 +209,14 @@ class Game extends React.Component {
                 console.log('YOU BITE YOURSELF :( \n\nTry smarter');
                 // TODO:
             }
-            if (isThereAnApple(nextCase[0], nextCase[1], prevState.apple)) {
+            let levelUp = false;
+            if (levelUp = isThereAnApple(nextCase[0], nextCase[1], prevState.apple)) {
+                // we put a new apple
+                var nextApple=this.getNextApple(board);
+                board[nextApple[0]][nextApple[1]] = 2;
+                newState.apple=nextApple;
+
                 console.log('LEVEL UPPPP :) \n\nSmart');
-                // TODO:
             }
             if (nextCase[0] < 0 || nextCase[0] >= this.props.caseHeight || nextCase[1] < 0 || nextCase[1] >=this.props.caseWidth) {
                 if (DEBBUG) console.log('ERROR ABORD');
@@ -214,29 +224,29 @@ class Game extends React.Component {
                 nextCase = [0,0];
                 return {gameInterval:null};
             }
-            var board = prevState.board.slice();
             board[nextCase[0]][nextCase[1]] = 1;
             // we construct the 'new' snake
             var snake = prevState.snake.slice();
             let lengthSnake = snake.length;
-            let lastBlockSnake = snake.pop();
+            if (!levelUp) var lastBlockSnake = snake.pop();
             snake.unshift([nextCase[0],nextCase[1]]);
             // we update the board
-            board[lastBlockSnake[0]][lastBlockSnake[1]] = 0;
+            if (!levelUp) board[lastBlockSnake[0]][lastBlockSnake[1]] = 0;
             board[nextCase[0]][nextCase[1]] = 1;
             if (DEBBUG) console.log('next case is ');
             if (DEBBUG) console.log(nextCase);
+            newState.board = board;
+            newState.snake = snake;
+
 
             // 2: WE HANDLE THE APPLE
             if (!prevState.apple.length) {
                 var nextApple=this.getNextApple(board);
                 board[nextApple[0]][nextApple[1]] = 2;
+                newState.apple=nextApple;
             }
-            return {
-                board:board,
-                snake:snake,
-                apple:[nextApple],
-            }
+            console.log(nextApple);
+            return newState;
         });
         if (DEBBUG) console.log('updated game');
     }
@@ -248,6 +258,7 @@ class Game extends React.Component {
                 <div className='game-result' >
                     <p>The current input is: {this.state.direction} and {this.state.key}</p>
                     <button onClick={this.pauseGame.bind(this)}>PAUSE GAME</button>
+                    <button onClick={this.resumeGame.bind(this)}>RESUME GAME</button>
                     <Result></Result>
                 </div>
                 <div className='game-board'>
@@ -278,6 +289,7 @@ function isThereAnApple(row,col,apple) {
     //    if (apple[i][0] === row && apple[i][1] === col) return true;
     //}
     // We consider first that there is only one APPLE
+    console.log(apple[0] + ' '+ apple[1]+ ' '+ row+' ' +col);
     if (apple[0]===row && apple[1]===col) return true;
     return false;
 }
