@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import keydown, { ALL_KEYS } from 'react-keydown'
 
-
+var DEBBUG = 1;
+var SIZE_CIRCLE = window.innerWidth/20;
 
 function Result() {
     return(<div>it's won.</div>)
@@ -19,16 +19,16 @@ class Case extends React.Component {
     updateCanvas() {
         const ctx = this.refs.canvas.getContext('2d');
         ctx.fillStyle = '#aaaaaa';
-        ctx.clearRect(0,0, 20, 20);
-        ctx.fillRect(0,0,20,20);
+        ctx.clearRect(0,0, SIZE_CIRCLE, SIZE_CIRCLE);
+        ctx.fillRect(0,0,SIZE_CIRCLE,SIZE_CIRCLE);
     }
 
     drawNothing() {
         const ctx = this.refs.canvas.getContext('2d');
         ctx.fillStyle = '#eeeeee';
         ctx.beginPath();
-        ctx.clearRect(0,0, 20, 20);
-        ctx.arc(10,10,10,0,2*Math.PI);
+        ctx.clearRect(0,0, SIZE_CIRCLE, SIZE_CIRCLE);
+        ctx.arc(SIZE_CIRCLE/2,SIZE_CIRCLE/2,SIZE_CIRCLE/2,0,2*Math.PI);
         ctx.fill();
     }
 
@@ -36,8 +36,8 @@ class Case extends React.Component {
         const ctx = this.refs.canvas.getContext('2d');
         ctx.fillStyle = '#008000';
         ctx.beginPath();
-        ctx.clearRect(0,0, 20, 20);
-        ctx.arc(10,10,10,0,2*Math.PI);
+        ctx.clearRect(0,0, SIZE_CIRCLE, SIZE_CIRCLE);
+        ctx.arc(SIZE_CIRCLE/2,SIZE_CIRCLE/2,SIZE_CIRCLE/2,0,2*Math.PI);
         ctx.fill();
     }
 
@@ -45,8 +45,8 @@ class Case extends React.Component {
         const ctx = this.refs.canvas.getContext('2d');
         ctx.fillStyle = '#ff0000';
         ctx.beginPath();
-        ctx.clearRect(0,0, 20, 20);
-        ctx.arc(10,10,10,0,1.5*Math.PI);
+        ctx.clearRect(0,0, SIZE_CIRCLE, SIZE_CIRCLE);
+        ctx.arc(SIZE_CIRCLE/2,SIZE_CIRCLE/2,SIZE_CIRCLE/2,0,1.5*Math.PI);
         ctx.fill();
     }
 
@@ -54,8 +54,8 @@ class Case extends React.Component {
         const ctx = this.refs.canvas.getContext('2d');
         ctx.fillStyle = '#222222';
         ctx.beginPath();
-        ctx.clearRect(0,0, 20, 20);
-        ctx.arc(10,10,10,0,2*Math.PI);
+        ctx.clearRect(0,0, SIZE_CIRCLE, SIZE_CIRCLE);
+        ctx.arc(SIZE_CIRCLE/2,SIZE_CIRCLE/2,SIZE_CIRCLE/2,0,2*Math.PI);
         ctx.fill();
     }
 
@@ -72,7 +72,7 @@ class Case extends React.Component {
 
     render() {
     //return <div className='case'>{this.props.row + ' ' + this.props.column}</div>;
-        return <canvas ref="canvas" width={20} height={20} />;
+        return <canvas ref="canvas" width={SIZE_CIRCLE} height={SIZE_CIRCLE} />;
     }
 }
 
@@ -115,20 +115,21 @@ class Game extends React.Component {
             board.push(newRow);
         }
         this.state = {
-            widthPerCase : 100,
-            heightPerCase : 100,
+            widthPerCase : 300,
+            heightPerCase : 300,
             board : board,   // 0 is nothing, 1 is the snake, 2 an apple, 3 an obstacle
             snake : [],
             apple : [],
             obstacle : [],
             direction : 1, // 0 up 1 rigth 2 down 3 left
             key:null,
+            gameInterval:null,
         };
     }
 
     componentDidMount() {
         this.startGame(5,3);
-        console.log('startGame');
+        if (DEBBUG) console.log('startGame');
         window.addEventListener('keydown', this.newDirection.bind(this), false);
 
     }
@@ -146,7 +147,18 @@ class Game extends React.Component {
             return {board: board,
             snake:[[i,j]]};
         });
-        setInterval(this.updateGame.bind(this),1000);
+        this.resumeGame();
+    }
+
+    pauseGame() {
+        if (this.state.gameInterval) {
+            clearInterval(this.state.gameInterval);
+            if (DEBBUG) console.log('GAME PAUSED and INTERVAL CLEARED');
+        }
+    }
+
+    resumeGame() {
+        this.setState({gameInterval:setInterval(this.updateGame.bind(this),1000)})
     }
 
     getNextCase(snakeHead,direction) {
@@ -169,23 +181,32 @@ class Game extends React.Component {
 
 
     updateGame() {
-        // TODO: read direction wanted by user
-        // TODO: control when hitting a wall
         // TODO: automatically add an apple
         // TODO: automatically add an obstacle
         this.setState( (prevState) => {
-            console.log('snake is ' + prevState.snake);
+            // 1: we handle where the snake is going next
             var nextCase = this.getNextCase(prevState.snake[0],prevState.direction);
-            //var nextCase = [3,3];
+
             // we check what there is at the next case.
-            if (isThereAnObstacle(nextCase[0], nextCase[1], prevState.obstacle)) console.log('YOU LOSE :(\n\nToo bad ..');
-            if (isThereTheSnake(nextCase[0], nextCase[1], prevState.snake)) console.log('YOU BITE YOURSELF :( \n\nTry smarter');
-            if (isThereAnApple(nextCase[0], nextCase[1], prevState.apple)) console.log('LEVEL UPPPP :) \n\nSmart');
-            if (nextCase[0] < 0 || nextCase[0] >= this.props.caseHeight || nextCase[1] < 0 || nextCase[1] >=this.props.caseWidth) {
-                console.log('ERROR ABORD');
-                nextCase = [0,0];
+            if (isThereAnObstacle(nextCase[0], nextCase[1], prevState.obstacle)) {
+                console.log('YOU LOSE :(\n\nToo bad ..');
+                // TODO:
             }
-            var board = prevState.board.slice();
+            if (isThereTheSnake(nextCase[0], nextCase[1], prevState.snake)) {
+                console.log('YOU BITE YOURSELF :( \n\nTry smarter');
+                // TODO:
+            }
+            if (isThereAnApple(nextCase[0], nextCase[1], prevState.apple)) {
+                console.log('LEVEL UPPPP :) \n\nSmart');
+                // TODO:
+            }
+            if (nextCase[0] < 0 || nextCase[0] >= this.props.caseHeight || nextCase[1] < 0 || nextCase[1] >=this.props.caseWidth) {
+                if (DEBBUG) console.log('ERROR ABORD');
+                this.pauseGame();
+                nextCase = [0,0];
+                return {gameInterval:null};
+            }
+            var board = prevState.board.slice();``
             board[nextCase[0]][nextCase[1]] = 1;
             // we construct the 'new' snake
             let snake = prevState.snake.slice();
@@ -195,15 +216,15 @@ class Game extends React.Component {
             // we update the board
             board[lastBlockSnake[0]][lastBlockSnake[1]] = 0;
             board[nextCase[0]][nextCase[1]] = 1;
-            console.log('next case is ');
-            console.log(nextCase);
+            if (DEBBUG) console.log('next case is ');
+            if (DEBBUG) console.log(nextCase);
             snake.push(nextCase);
             return {
                 board:board,
                 snake:snake,
             }
         });
-        console.log('updated game');
+        if (DEBBUG) console.log('updated game');
     }
 
 
@@ -251,35 +272,4 @@ function isThereAnObstacle(row,col,obstacle) {
         if (obstacle[i][0] === row && obstacle[i][1] === col) return true;
     }
     return false;
-}
-
-function handleKeyPress (event) {
-
-
-    switch (event.key) {
-      case "ArrowDown":
-        this.setState ({direction : 2});
-        break;
-      case "ArrowUp":
-        this.setState ({ direction : 0});
-        break;
-      case "ArrowLeft":
-        this.setState({ direction : 3});
-        break;
-      case "ArrowRight":
-        this.setState({ direction : 1});
-        break;
-      case "Enter":
-        // Do something for "enter" or "return" key press.
-        break;
-      case "Escape":
-        // Do something for "esc" key press.
-        break;
-      default:
-        console.log('NONNNNNNNNNNNNNNNNNNNNkey Down');
-        return; // Quit when this doesn't handle the key event.
-    }
-
-    // Consume the event for suppressing "double action".
-    event.preventDefault();
 }

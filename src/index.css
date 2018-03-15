@@ -5,10 +5,10 @@
 
 .row {
   text-align:center;
-  height: 21px;
+  height: auto;
 }
 
 .case {
   border: 1px solid black;
-  border-radius: 5px;
+  border-radius: auto;
 }
