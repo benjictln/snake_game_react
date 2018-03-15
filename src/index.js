@@ -91,7 +91,7 @@ class Board extends React.Component {
         var board = [];
         for (var i = 0; i < this.props.nbCaseColumn; i++) {
             board.push(
-                <div key={i} className='row'>
+                <div style={{height:SIZE_CIRCLE}} key={i} className='row'>
                     {this.renderRow(i)}
                 </div>);
         }
@@ -125,6 +125,8 @@ class Game extends React.Component {
             direction : 1, // 0 up 1 rigth 2 down 3 left
             key:null,
             gameInterval:null,
+            message:null,
+            score:0,
         };
     }
 
@@ -192,8 +194,15 @@ class Game extends React.Component {
         return ([x,y]);
     }
 
+    gameOver() {
+        this.pauseGame();
+        if (DEBBUG) console.log('GAME OVER !');
+        return {
+            gameInterval:null,
+            message:'GAME OVER',
+        };
+    }
     updateGame() {
-        // TODO: automatically add an apple
         // TODO: automatically add an obstacle
         this.setState( (prevState) => {
             // 1: WE HANDLE WHERE THE SNAKE IS GOING NEXT
@@ -207,7 +216,8 @@ class Game extends React.Component {
             }
             if (isThereTheSnake(nextCase[0], nextCase[1], prevState.snake)) {
                 console.log('YOU BITE YOURSELF :( \n\nTry smarter');
-                // TODO:
+                return this.gameOver();
+
             }
             let levelUp = false;
             if (levelUp = isThereAnApple(nextCase[0], nextCase[1], prevState.apple)) {
@@ -216,13 +226,13 @@ class Game extends React.Component {
                 board[nextApple[0]][nextApple[1]] = 2;
                 newState.apple=nextApple;
 
+                newState.score = prevState.score+1;
+
                 console.log('LEVEL UPPPP :) \n\nSmart');
             }
             if (nextCase[0] < 0 || nextCase[0] >= this.props.caseHeight || nextCase[1] < 0 || nextCase[1] >=this.props.caseWidth) {
-                if (DEBBUG) console.log('ERROR ABORD');
-                this.pauseGame();
-                nextCase = [0,0];
-                return {gameInterval:null};
+                if (DEBBUG) console.log('ERROR ABORD\nPlayer is out of bounds');
+                return this.gameOver();
             }
             board[nextCase[0]][nextCase[1]] = 1;
             // we construct the 'new' snake
@@ -256,7 +266,7 @@ class Game extends React.Component {
         return (
             <div className='game' style={{width:'100%'}}>
                 <div className='game-result' >
-                    <p>The current input is: {this.state.direction} and {this.state.key}</p>
+                    <p>YOUR SCORE IS {this.state.score}.{this.state.message}</p>
                     <button onClick={this.pauseGame.bind(this)}>PAUSE GAME</button>
                     <button onClick={this.resumeGame.bind(this)}>RESUME GAME</button>
                     <Result></Result>
