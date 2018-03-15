@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
-var DEBBUG = 1;
+var DEBBUG = 0;
 var SIZE_CIRCLE = window.innerWidth/20;
 
 function Result() {
@@ -179,14 +179,22 @@ class Game extends React.Component {
         }
     }
 
+    getNextApple(board) {
+        var x = Math.floor(board.length*Math.random());
+        var y = Math.floor(board[0].length*Math.random());
+        while (board[x][y] != 0) {
+            var x = Math.floor(board.length*Math.random);
+            var y = Math.floor(board[0].length*Math.random);
+        }
+        return ([x,y]);
+    }
 
     updateGame() {
         // TODO: automatically add an apple
         // TODO: automatically add an obstacle
         this.setState( (prevState) => {
-            // 1: we handle where the snake is going next
+            // 1: WE HANDLE WHERE THE SNAKE IS GOING NEXT
             var nextCase = this.getNextCase(prevState.snake[0],prevState.direction);
-
             // we check what there is at the next case.
             if (isThereAnObstacle(nextCase[0], nextCase[1], prevState.obstacle)) {
                 console.log('YOU LOSE :(\n\nToo bad ..');
@@ -219,9 +227,16 @@ class Game extends React.Component {
             if (DEBBUG) console.log('next case is ');
             if (DEBBUG) console.log(nextCase);
             snake.push(nextCase);
+
+            // 2: WE HANDLE THE APPLE
+            if (!prevState.apple.length) {
+                var nextApple=this.getNextApple(board);
+                board[nextApple[0]][nextApple[1]] = 2;
+            }
             return {
                 board:board,
                 snake:snake,
+                apple:[nextApple],
             }
         });
         if (DEBBUG) console.log('updated game');
@@ -259,9 +274,11 @@ function isThereTheSnake(row,col, snake) {
 function isThereAnApple(row,col,apple) {
     //return true if an apple is present at the case at column 'col' and row 'row'
     let length = apple.length;
-    for (let i = 0; i < length; i++) {
-        if (apple[i][0] === row && apple[i][1] === col) return true;
-    }
+    //for (let i = 0; i < length; i++) {
+    //    if (apple[i][0] === row && apple[i][1] === col) return true;
+    //}
+    // We consider first that there is only one APPLE
+    if (apple[0]===row && apple[1]===col) return true;
     return false;
 }
 
